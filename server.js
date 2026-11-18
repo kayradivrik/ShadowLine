@@ -42,7 +42,7 @@ const KIMLIK_DOGRULAMA_ZAMAN_ASIMI_MS = 15000;
 const MAKS_GELEN_VERI_BOYUTU = 8192;
 
 // Sistemde ayrılmış / yasak isimler
-const AYRILMIS_ISIMLER = new Set(['kayra', 'root', 'admin', 'system', 'shadowline', 'whononymous']);
+const AYRILMIS_ISIMLER = new Set(['root', 'admin', 'system', 'shadowline', 'whononymous']);
 
 function sunucuOlustur(ozelAyarlar = {}) {
   const logDosyasi = ozelAyarlar.logDosyasi || AYARLAR.LOG_DOSYASI;
@@ -567,7 +567,7 @@ function sunucuOlustur(ozelAyarlar = {}) {
       }
     }, KIMLIK_DOGRULAMA_ZAMAN_ASIMI_MS);
 
-    let secilenIsim = 'samsepi0l';
+    let secilenIsim = 'kayra';
 
     sshIstemci.on('authentication', (kimlik) => {
       const hamKullaniciAdi = String(kimlik.username || '').trim();
