@@ -1,173 +1,188 @@
-# ShadowLine
+# ShadowLine ⚡
 
 <p align="center">
   <img src="assets/banner.svg" alt="ShadowLine Banner" width="100%">
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node Version">
-  <img src="https://img.shields.io/badge/security-hardened-success.svg" alt="Security Hardened">
-  <img src="https://img.shields.io/badge/transport-SSH2%20%7C%20TLS-cyan.svg" alt="Protocols">
-  <img src="https://img.shields.io/badge/crypto-AES--256--GCM-orange.svg" alt="Crypto">
+  <strong>A hardened, retro-inspired terminal chat server with SSH2, TLS, and AES-256-GCM audit logging.</strong>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D18.0.0-339933.svg?style=flat-square&logo=node.js&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Protocols-SSH2%20%7C%20TLS-00f2fe.svg?style=flat-square" alt="Protocols">
+  <img src="https://img.shields.io/badge/Security-AES--256--GCM-orange.svg?style=flat-square" alt="Security">
+  <img src="https://img.shields.io/badge/Tests-11%2F11%20Passing-brightgreen.svg?style=flat-square" alt="Tests">
+</p>
+
+<p align="center">
+  <a href="#-tech-stack">Tech Stack</a> •
+  <a href="#-key-features">Key Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-client-connections">Client Connections</a> •
+  <a href="#-commands-cheat-sheet">Commands</a> •
+  <a href="#-security-architecture">Security</a> •
+  <a href="#-license">License</a>
 </p>
 
 ---
 
-**ShadowLine** is a hardened, retro-styled terminal chat daemon engineered for secure real-time communication. It provides direct SSH shell access (zero client installation needed), a dedicated TLS client protocol, channel permission isolation, and server-side AES-256-GCM encrypted audit logging.
+## 🛠️ Built With
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="NodeJS">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/OpenSSH-231F20?style=for-the-badge&logo=openssh&logoColor=white" alt="OpenSSH">
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux">
+  <img src="https://img.shields.io/badge/Bash-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white" alt="Bash">
+  <img src="https://img.shields.io/badge/PM2-2B037A?style=for-the-badge&logo=pm2&logoColor=white" alt="PM2">
+</p>
 
 ---
 
-## ⚡ Core Features
+## ⚡ Key Features
 
-- **Direct SSH Access (Port 2222):** Users can connect directly from any terminal using standard OpenSSH (`ssh username@host -p 2222`).
-- **Cryptographic SSH Authentication:** Registered usernames are strictly enforced via OpenSSH public keys (`keys/chat-users.json`). Unsigned or mismatched keys are immediately rejected.
-- **Dedicated TLS Client Protocol (Port 6697):** Dedicated encrypted channel with immediate socket rate limiting and authentication timeouts.
-- **Session-Bound Private Messaging (`/reply`, `/r`):** Direct message replies are cryptographically bound to immutable session UUIDs. Nickname changes do not break conversations, and reclaimed nicknames cannot intercept previous session replies.
-- **Channel Access Control & Moderation:**
-  - Password-protected channels (`/key`).
-  - Strict membership verification: unauthenticated users cannot view member lists (`/who`) or broadcast messages.
-  - Channel moderation: `/topic` (set channel topic), `/kick` (remove user), `/away` (automated status responder), and `/me` (action formatting).
-- **HMAC IP Cloaking:** Users' real IP addresses are never exposed to other chat participants; each user is masked with a cryptographic `.whononymous.onion` host derived from a secure salt.
-- **Encrypted Audit Logging:** All channel broadcasts and private messages are written to disk encrypted via AES-256-GCM using `MASTER_LOG_KEY`.
-- **Built-in Abuse Mitigation:**
-  - Socket-level connection limits per IP (including connections pending authentication).
-  - 15-second authentication timeout.
-  - 8 KB input buffer overflow protection.
-  - Rate limiting (flood / spam prevention).
-- **Terminal UX:** Interactive `[Tab]` command and nickname autocomplete, plus ASCII bell (`\x07`) notifications on mentions and direct messages.
-
----
-
-## 🏗️ Architecture
-
-```
-                 +-----------------------------------+
-                 |           ShadowLine              |
-                 +-----------------+-----------------+
-                                   |
-         +-------------------------+-------------------------+
-         |                                                   |
-   [Port 2222 / SSH2]                                  [Port 6697 / TLS]
-   - OpenSSH Public Key Auth                           - TLS Encryption
-   - Interactive Readline PTY                          - JSON Protocol Stream
-   - Tab Autocomplete                                  - Socket Rate Limiting
-         |                                                   |
-         +-------------------------+-------------------------+
-                                   |
-                 +-----------------+-----------------+
-                 |        Core Engine & Security     |
-                 +-----------------+-----------------+
-                 | - Immutable UUID Sessions         |
-                 | - Room Permission Engine          |
-                 | - HMAC-SHA256 IP Cloaking         |
-                 | - AES-256-GCM Audit Logger        |
-                 +-----------------+-----------------+
-                                   |
-                         [logs/audit.enc.log]
-```
+- **Zero-Install SSH Access:** Connect directly from any standard terminal with `ssh username@host -p 2222`. No desktop client or special package required.
+- **Cryptographic Public Key Authentication:** Enforce registered nicknames using OpenSSH public keys (`keys/chat-users.json`). Rejects unsigned, unauthenticated, or impersonated logins.
+- **Session-Bound Private Messaging (`/reply`, `/r`):** Messages are delivered to immutable UUID session identifiers. Changing a nickname does not break replies, and disconnecting prevents hijacked delivery.
+- **Dedicated TLS Client Protocol (Port 6697):** Encrypted alternative transport channel with socket-level DDoS rate limiting and 15-second handshake timeouts.
+- **Channel Moderation & Permission Isolation:**
+  - Password-protected channels (`/key <password>`).
+  - Strict membership check: unauthorized users cannot broadcast or view member lists (`/who`).
+  - Channel topic (`/topic`), user kick (`/kick`), action messages (`/me`), and auto-responder (`/away`).
+- **HMAC-SHA256 IP Masking:** Real user IP addresses are never exposed to other connected peers; each user gets a deterministic masked host like `~nick@23c784da.whononymous.onion`.
+- **Server Owner Encrypted Audit Trails:** Full forensic event logs encrypted on disk with AES-256-GCM using `MASTER_LOG_KEY`.
+- **Interactive Terminal UX:** Tab auto-completion for commands and nicknames, ANSI color palettes, and terminal bell (`\x07`) pings on mentions.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
-- **Node.js** >= 18.0.0
-- **npm** >= 9.0.0
-
-### 2. Installation
+### 1. Clone & Install
 ```bash
 git clone https://github.com/kayradivrik/ShadowLine.git
 cd ShadowLine
 npm install
 ```
 
-### 3. Configuration
-Copy the sample environment file:
+### 2. Configure Environment
 ```bash
 cp .env.example .env
 ```
-Generate or register authorized SSH chat users in `keys/chat-users.json`:
+Generate an authorized user in `keys/chat-users.json`:
 ```json
 {
-  "admin_user": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQ..."
+  "samsepi0l": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQ..."
 }
 ```
 
-### 4. Start the Server
+### 3. Start the Server
 ```bash
 npm start
 ```
 
 ---
 
-## 💻 Connecting to ShadowLine
+## 💻 Client Connections
 
-### Method A: Via SSH (Zero Installation)
-Connect with your registered SSH private key:
+### Option A: Standard SSH (Zero Setup)
 ```bash
-ssh -i ~/.ssh/id_rsa username@127.0.0.1 -p 2222
+ssh -i ~/.ssh/id_rsa samsepi0l@127.0.0.1 -p 2222
 ```
 
-### Method B: Via Custom TLS Client
+### Option B: Custom TLS Client
 ```bash
 npm run client -- guest_user 127.0.0.1 6697
 ```
 
 ---
 
-## 📜 Commands Reference
+## 📜 Commands Cheat Sheet
 
-| Command | Syntax | Description |
+| Command | Usage | Description |
 | :--- | :--- | :--- |
-| `/join` | `/join <#channel> [key]` | Join an existing room or create a new one. |
-| `/msg` | `/msg <nick> <message>` | Send an encrypted direct message. |
-| `/reply` | `/reply <message>` | Reply to the last peer using session UUID. |
-| `/nick` | `/nick <new_name>` | Change your current display name. |
-| `/me` | `/me <action>` | Post a third-person action message (`* nick action`). |
-| `/topic` | `/topic [new_topic]` | View or update channel topic (owner only). |
-| `/kick` | `/kick <nick> [reason]` | Remove an unwanted user from channel (owner only). |
-| `/away` | `/away [message]` | Set automated away responder; type `/away` to toggle off. |
-| `/key` | `/key [password]` | Set or remove password protection (`+k`). |
-| `/secret` | `/secret` | Toggle room visibility in `/list` (`+s`). |
-| `/who` | `/who` | List all verified members in current channel. |
-| `/list` | `/list` | List all non-secret public channels. |
-| `/clear` | `/clear` | Clear the terminal screen. |
-| `/quit` | `/quit` | Safely disconnect from the server. |
+| `/join` | `/join <#channel> [password]` | Join or create a channel |
+| `/msg` | `/msg <nick> <message>` | Send a direct encrypted message (triggers ping bell) |
+| `/reply` | `/reply <message>` | Respond to last DM peer via immutable session UUID |
+| `/nick` | `/nick <new_name>` | Update your display nickname |
+| `/me` | `/me <action>` | Broadcast third-person action (`* nick drinks coffee`) |
+| `/topic` | `/topic [new_topic]` | View or update channel topic (channel admin only) |
+| `/kick` | `/kick <nick> [reason]` | Remove user from room to lobby (channel admin only) |
+| `/away` | `/away [message]` | Toggle automated away responder |
+| `/key` | `/key [password]` | Lock/unlock room password (`+k`) |
+| `/secret` | `/secret` | Toggle room visibility in `/list` (`+s`) |
+| `/who` | `/who` | Display verified members of current channel |
+| `/list` | `/list` | List public non-secret channels |
+| `/clear` | `/clear` | Clear terminal window buffer |
+| `/quit` | `/quit` | Terminate session cleanly |
 
 ---
 
-## 🔒 Encrypted Audit Logs (Server Admin)
+## 🔒 Security Architecture
 
-Server administrators can inspect encrypted audit trails in real-time or export logs:
+```
+                      +-----------------------------+
+                      |         ShadowLine          |
+                      +--------------+--------------+
+                                     |
+               +---------------------+---------------------+
+               |                                           |
+         [Port 2222]                                 [Port 6697]
+          SSH2 Daemon                                 TLS Stream
+     OpenSSH Public Key                          Socket Rate Limiter
+     Interactive PTY Shell                       JSON Stream Handshake
+               |                                           |
+               +---------------------+---------------------+
+                                     |
+                      +--------------+--------------+
+                      |   Core Hardening Engine     |
+                      +--------------+--------------+
+                      | - UUID Immutable Sessions   |
+                      | - Room Permission Guard     |
+                      | - HMAC-SHA256 IP Cloaking   |
+                      | - AES-256-GCM Audit Logger  |
+                      +--------------+--------------+
+                                     |
+                          [logs/audit.enc.log]
+```
+
+### Forensic Audit Log Inspection (Server Owner Only)
 ```bash
-# Read and decrypt all historical audit entries
+# Decrypt all audit entries
 npm run logs
 
-# Stream live incoming logs in real time
+# Stream real-time events
 npm run logs -- --live
 
-# Filter audit logs by nickname or IP hash
-npm run logs -- username
+# Filter by nickname or masked host
+npm run logs -- samsepi0l
 ```
 
 ---
 
-## 🛡️ Security & Transparency Disclosure
+## 🧪 Security Test Suite
 
-> **Transparency Notice:** In accordance with the system design, all channel broadcasts and direct messages are recorded to server audit logs encrypted with AES-256-GCM using `MASTER_LOG_KEY`. Connected participants are informed of this upon initial handshake.
-
----
-
-## 🧪 Testing
-
-Run the full security test suite covering session tracking, authentication rejection, channel isolation, and audit decryption:
+Run the 11-step automated security validation suite:
 ```bash
 npm test
 ```
+Verifies:
+- Session ID persistence across nickname changes
+- Delivery termination on disconnect (no cross-session leaks)
+- Public key signature validation & rejection of unsigned SSH logins
+- TLS client rejection of reserved / registered nicknames
+- Default room password enforcement & `/who` isolation
+- AES-256-GCM ciphertext integrity and scrypt key derivation
+
+---
+
+## 🏷️ GitHub Topics & SEO
+Recommended topics for repository discovery:
+`terminal-chat` • `ssh-server` • `ssh2` • `tls-client` • `cli-chat` • `retro-terminal` • `aes-256-gcm` • `cybersecurity` • `nodejs` • `linux-daemon` • `secure-messaging` • `audit-logging`
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE) — Copyright (c) 2026 Kayra Divrik.
