@@ -1,0 +1,16 @@
+{
+  "name": "whononymous",
+  "version": "1.0.0",
+  "description": "Mr. Robot / BitchX inspired encrypted terminal chat server (SSH + Custom Client) with AES-256-GCM IP audit logging",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node client.js",
+    "logs": "node logs.js",
+    "test": "node test/verify.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ssh2": "^1.16.0"
+  }
+}
