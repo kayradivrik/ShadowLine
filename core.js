@@ -66,6 +66,7 @@ const AYARLAR = {
   MASTER_LOG_KEY: okunanEnv.MASTER_LOG_KEY,
   TRANSPORT_SECRET: okunanEnv.TRANSPORT_SECRET,
   IP_CLOAK_SECRET: okunanEnv.IP_CLOAK_SECRET,
+  SERVER_PASSWORD: okunanEnv.SERVER_PASSWORD || '',
   LOG_DOSYASI: path.join(__dirname, 'logs', 'audit.enc.log'),
   SSH_ANAHTAR_DOSYASI: path.join(__dirname, 'keys', 'ssh_host_rsa_key'),
   TLS_CERT_DOSYASI: path.join(__dirname, 'keys', 'tls_cert.pem'),

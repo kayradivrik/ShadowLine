@@ -21,6 +21,7 @@ const { AYARLAR } = require('./core');
 const kullaniciAdi = process.argv[2] || 'd0loresH4ze';
 const sunucuIp = process.argv[3] || process.env.HOST || '127.0.0.1';
 const sunucuPort = Number(process.argv[4] || AYARLAR.CLIENT_PORT);
+const sunucuSifresi = process.argv[5] || process.env.SERVER_PASSWORD || '';
 
 const certPath = path.join(__dirname, 'keys', 'tls_cert.pem');
 const tlsOptions = {
@@ -66,7 +67,7 @@ function sunucuyaGonder(veriNesnesi) {
 // 2. BAĞLANTI OLAYLARI VE DİNLEYİCİLER
 // ============================================================================
 baglanti.on('secureConnect', () => {
-  sunucuyaGonder({ kullaniciAdi });
+  sunucuyaGonder({ kullaniciAdi, sifre: sunucuSifresi });
   klavyeOkuyucu.setPrompt('\x1b[1;36m[ShadowLine] > \x1b[0m');
   klavyeOkuyucu.prompt();
 });

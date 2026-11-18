@@ -47,6 +47,7 @@ const AYRILMIS_ISIMLER = new Set(['kayra', 'root', 'admin', 'system', 'shadowlin
 function sunucuOlustur(ozelAyarlar = {}) {
   const logDosyasi = ozelAyarlar.logDosyasi || AYARLAR.LOG_DOSYASI;
   const anaLogSifresi = ozelAyarlar.anaLogSifresi || AYARLAR.MASTER_LOG_KEY;
+  const sunucuSifresi = ozelAyarlar.sunucuSifresi ?? AYARLAR.SERVER_PASSWORD;
   const kayitDosyasi = path.join(__dirname, 'keys', 'chat-users.json');
 
   // Kayıtlı SSH kullanıcı açık anahtarlarını yükle
@@ -601,6 +602,20 @@ function sunucuOlustur(ozelAyarlar = {}) {
         return kimlik.reject(['publickey', 'password']);
       }
 
+      // Sunucu parolası aktif ise misafirlerin parola girmesi zorunludur
+      if (sunucuSifresi) {
+        if (kimlik.method === 'password') {
+          if (kimlik.password === sunucuSifresi) {
+            secilenIsim = hamKullaniciAdi || 'misafir';
+            authTamamlandi = true;
+            clearTimeout(authZamanAsimi);
+            return kimlik.accept();
+          }
+          return kimlik.reject(['password']);
+        }
+        return kimlik.reject(['password']);
+      }
+
       if (kimlik.method === 'publickey') {
         if (!kimlik.signature) {
           return kimlik.accept();
@@ -783,6 +798,17 @@ function sunucuOlustur(ozelAyarlar = {}) {
         if (!aktifKullanici) {
           const istenenNick = String(veri.kullaniciAdi || '').trim();
           const kucukNick = istenenNick.toLowerCase();
+
+          // Sunucu parolası aktif ise doğrula
+          if (sunucuSifresi && veri.sifre !== sunucuSifresi) {
+            if (soket.writable) {
+              soket.write(JSON.stringify({
+                hata: true,
+                metin: '\x1b[1;31m-!- Hatalı sunucu giriş parolası.\x1b[0m'
+              }) + '\n');
+            }
+            return soket.destroy();
+          }
 
           if (sshAnahtarlari.has(kucukNick) || AYRILMIS_ISIMLER.has(kucukNick)) {
             if (soket.writable) {
