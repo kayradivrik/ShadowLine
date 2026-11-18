@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kayra's VPS // Linux Sunucu Yönetim El Kitabı</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-purple: #8b5cf6;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --code-bg: #030712;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 280px;
+      background-color: #0b0f19;
+      border-right: 1px solid var(--card-border);
+      padding: 24px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #000;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .brand-text span {
+      font-size: 11px;
+      color: var(--accent-cyan);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .nav-group {
+      margin-bottom: 20px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      padding-left: 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .nav-link:hover {
+      background-color: #1f2937;
+      color: #fff;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 32px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .search-box {
+      position: relative;
+      width: 380px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 16px 10px 38px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Server Info Card Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .info-badge {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-badge::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent-cyan);
+    }
+
+    .info-badge.green::before { background: var(--accent-green); }
+    .info-badge.purple::before { background: var(--accent-purple); }
+    .info-badge.amber::before { background: var(--accent-amber); }
+
+    .info-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      font-family: monospace;
+    }
+
+    /* Section Styles */
+    section {
+      margin-bottom: 40px;
+      scroll-margin-top: 30px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .section-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .section-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* Command Card */
+    .cmd-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .cmd-card:hover {
+      border-color: #374151;
+    }
+
+    .cmd-header {
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .cmd-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cmd-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .tag-essential { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+    .tag-monitor { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .tag-danger { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+    .tag-service { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+
+    .cmd-body {
+      padding: 14px 18px;
+    }
+
+    .cmd-desc {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      overflow-x: auto;
+    }
+
+    .code-text {
+      white-space: pre;
+    }
+
+    .copy-btn {
+      background: #1f2937;
+      color: #9ca3af;
+      border: 1px solid #374151;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .copy-btn:hover {
+      background: #374151;
+      color: #fff;
+    }
+
+    .copy-btn.copied {
+      background: #065f46;
+      color: #34d399;
+      border-color: #059669;
+    }
+
+    /* Pro-Tip Box */
+    .pro-tip {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: #a5f3fc;
+      line-height: 1.4;
+    }
+
+    .pro-tip strong {
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      aside { width: 100%; height: auto; position: static; }
+      main { padding: 20px; }
+      .search-box { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="brand">
+      <div class="brand-icon">K</div>
+      <div class="brand-text">
+        <h1>KAYRA VPS</h1>
+        <span>DEBIAN 12 // LINUX GUIDE</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Genel Bakış</div>
+      <a href="#quick-connect" class="nav-link">🔑 Hızlı Bağlantı &amp; Durum</a>
+      <a href="#ten-commandments" class="nav-link">⚡ 10 Temel Hayat Kurtarıcı</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Sistem &amp; Kaynaklar</div>
+      <a href="#resource-monitor" class="nav-link">📊 RAM, Disk &amp; CPU İzleme</a>
+      <a href="#service-manager" class="nav-link">🔄 PM2 &amp; Systemd Servisleri</a>
+      <a href="#nginx-web" class="nav-link">🌐 Nginx &amp; SSL (Portfolyo)</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Özel Uygulamalar</div>
+      <a href="#shadowline-mgmt" class="nav-link">💬 ShadowLine Chat Yönetimi</a>
+      <a href="#security-firewall" class="nav-link">🛡️ Güvenlik &amp; Fail2ban</a>
+      <a href="#disaster-recovery" class="nav-link">🚨 "Sunucu Çöktü" Rehberi</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="header-bar">
+      <div>
+        <h1 style="font-size: 26px; font-weight: 800; color: #fff;">Linux Sunucu Yönetim El Kitabı</h1>
+        <p style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Kayra'nın Canlı VPS (`82.153.241.173`) İçin Özel Hazırlanmış Operasyon Rehberi</p>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="cmdSearch" placeholder="Komut veya konu ara (örn: nginx, pm2, ram, log)...">
+      </div>
+    </div>
+
+    <!-- SERVER METRICS BADGES -->
+    <div class="info-grid">
+      <div class="info-badge">
+        <div class="info-title">Sunucu IP</div>
+        <div class="info-value">82.153.241.173</div>
+      </div>
+      <div class="info-badge green">
+        <div class="info-title">SSH Admin Portu</div>
+        <div class="info-value">Port 22 (kayra)</div>
+      </div>
+      <div class="info-badge purple">
+        <div class="info-title">ShadowLine Sohbet</div>
+        <div class="info-value">Port 2222 / 6697</div>
+      </div>
+      <div class="info-badge amber">
+        <div class="info-title">Web &amp; Portfolyo</div>
+        <div class="info-value">Port 80 / 443 / 3000</div>
+      </div>
+    </div>
+
+    <!-- 1. HIZLI BAĞLANTI -->
+    <section id="quick-connect">
+      <div class="section-header">
+        <h2>🔑 1. Sunucuna Bağlanma (Tek Tıkla Bağlan)</h2>
+      </div>
+      <p class="section-desc">Kendi Windows bilgisayarında PowerShell veya Terminali açtığında doğrudan sunucuna bağlanmak için bu komutları kullanırsın:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">💻 VPS Yönetim Konsoluna Bağlan (Root/Admin SSH)</span>
+          <span class="cmd-tag tag-essential">Ana Bağlantı</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Sunucunun Linux komut satırına ana yetkili (kayra) olarak bağlanır. Şifre sormaz, C:\Users\kayra\.ssh\id_rsa anahtarını kullanır.</p>
+          <div class="code-box">
+            <span class="code-text">ssh -i C:\Users\kayra\.ssh\id_rsa kayra@82.153.241.173</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">💬 ShadowLine Sohbetine Yönetici Olarak Gir</span>
+          <span class="cmd-tag tag-service">Sohbet</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Doğrudan Port 2222 üzerinden senin sohbet sunucuna bağlanır ve seni oda yöneticisi (@) yapar.</p>
+          <div class="code-box">
+            <span class="code-text">ssh -i C:\Users\kayra\.ssh\id_rsa kayra@82.153.241.173 -p 2222</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 10 TEMEL HAYAT KURTARICI KOMUT -->
+    <section id="ten-commandments">
+      <div class="section-header">
+        <h2>⚡ 2. Her Gün Kullanacağın 10 Hayat Kurtarıcı Komut</h2>
+      </div>
+      <p class="section-desc">Sunucuya her girdiğinde kafan karıştığında bu temel komutlarla her şeyi kontrol edebilirsin:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">1. Çalışan Portları ve Servisleri Gör (Kim Ne Dinliyor?)</span>
+          <span class="cmd-tag tag-essential">Temel</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Sunucunda 22, 80, 443, 2222, 6697 portlarının açık ve çalışır olduğunu anında listeler.</p>
+          <div class="code-box">
+            <span class="code-text">sudo ss -tulpn</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">2. RAM Durumu (Ne Kadar Bellek Kaldı?)</span>
+          <span class="cmd-tag tag-monitor">İzleme</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Kullanılan ve boşta kalan RAM miktarını megabayt cinsinden temiz bir tabloyla gösterir.</p>
+          <div class="code-box">
+            <span class="code-text">free -m</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">3. Disk Alanı Kontrolü (Harddisk Doldu mu?)</span>
+          <span class="cmd-tag tag-monitor">İzleme</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Diskte ne kadar yer kaldığını GB cinsinden gösterir (Özellikle `/` dizininin doluluk yüzdesine bak).</p>
+          <div class="code-box">
+            <span class="code-text">df -h</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">4. Canlı Süreç &amp; Görev Yöneticisi (Htop)</span>
+          <span class="cmd-tag tag-monitor">Canlı</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Windows Görev Yöneticisi gibidir. CPU, RAM ve çalışan tüm süreçleri canlı renkli grafiklerle izletir (Çıkmak için: `q`).</p>
+          <div class="code-box">
+            <span class="code-text">htop</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">5. PM2 Durumu (ShadowLine Çalışıyor mu?)</span>
+          <span class="cmd-tag tag-service">PM2</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Node.js sohbet uygulamasının ayakta olup olmadığını, uptime süresini ve harcadığı RAM'i gösterir.</p>
+          <div class="code-box">
+            <span class="code-text">pm2 status</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SERVİS VE UYGULAMA YÖNETİMİ -->
+    <section id="service-manager">
+      <div class="section-header">
+        <h2>🔄 3. PM2 &amp; Systemd Servis Yönetimi</h2>
+      </div>
+      <p class="section-desc">Sunucunda iki ana uygulama çalışıyor: Portfolyo siten (Systemd) ve ShadowLine Sohbet Servisi (PM2). Bunları nasıl kontrol edeceksin:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">ShadowLine Sohbetini Yeniden Başlat (Restart)</span>
+          <span class="cmd-tag tag-service">PM2</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Kodları veya ayarları (.env) değiştirdiğinde sunucuyu anında güncel şekilde yeniden başlatır.</p>
+          <div class="code-box">
+            <span class="code-text">pm2 restart whononymous --update-env</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Portfolyo Web Siteni Kontrol Et &amp; Yeniden Başlat</span>
+          <span class="cmd-tag tag-service">Systemd</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Next.js portfolyonun durumuna bakar veya takılırsa yeniden başlatır.</p>
+          <div class="code-box">
+            <span class="code-text">sudo systemctl restart kayra-portfolio &amp;&amp; sudo systemctl status kayra-portfolio</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Canlı Hata Loglarını İzle (Kayan Yazı)</span>
+          <span class="cmd-tag tag-monitor">Loglar</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Node.js uygulamasında bir hata olursa terminale anında basar (Durdurmak için: `Ctrl + C`).</p>
+          <div class="code-box">
+            <span class="code-text">pm2 logs whononymous</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. NGINX & SSL WEB REHBERİ -->
+    <section id="nginx-web">
+      <div class="section-header">
+        <h2>🌐 4. Nginx Web Sunucusu &amp; SSL Sertifikası</h2>
+      </div>
+      <p class="section-desc">Nginx, dışarıdan gelen HTTPS isteklerini (Port 443) karşılayıp portfolyo sitene aktaran ön kapıdır:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Nginx Ayarlarını Test Et (Sözdizimi Hatası Var mı?)</span>
+          <span class="cmd-tag tag-essential">Önemli</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Nginx konfigürasyonunu değiştirdiğinde hata yapıp yapmadığını kontrol eder. `syntax is ok` diyorsa güvenlidir.</p>
+          <div class="code-box">
+            <span class="code-text">sudo nginx -t</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Nginx'i Kesintisiz Yeniden Yükle (Reload)</span>
+          <span class="cmd-tag tag-service">Nginx</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Mevcut bağlantıları koparmadan ayarları günceller.</p>
+          <div class="code-box">
+            <span class="code-text">sudo systemctl reload nginx</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">SSL Sertifikalarını Otomatik Yenile (Certbot)</span>
+          <span class="cmd-tag tag-service">SSL</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Let's Encrypt SSL süresi bitmeye yakınken sertifikaları günceller.</p>
+          <div class="code-box">
+            <span class="code-text">sudo certbot renew --dry-run</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. SHADOWLINE CHAT ÖZEL REHBERİ -->
+    <section id="shadowline-mgmt">
+      <div class="section-header">
+        <h2>💬 5. ShadowLine Özel Yönetim Komutları</h2>
+      </div>
+      <p class="section-desc">Sadece sunucu sahibinin kullanabileceği şifreli log çözme ve yeni kullanıcı yetkilendirme komutları:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Şifreli Konuşmaları ve IP Loglarını Çöz ve Oku</span>
+          <span class="cmd-tag tag-essential">Admin</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Sunucudaki tüm AES-256-GCM ile şifrelenmiş denetim kayıtlarını otomatik çözüp ekrana basar.</p>
+          <div class="code-box">
+            <span class="code-text">cd /home/kayra/whononymous &amp;&amp; npm run logs</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Canlı Sohbet Akışını Yönetici Olarak İzle (Live Stream)</span>
+          <span class="cmd-tag tag-monitor">Canlı</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Sohbette anlık kim kime ne mesaj attıysa gerçek zamanlı ekrana basar.</p>
+          <div class="code-box">
+            <span class="code-text">cd /home/kayra/whononymous &amp;&amp; npm run logs -- --live</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Sohbete Yeni Bir Güvenilir Kullanıcı Ekle (SSH Anahtarı ile)</span>
+          <span class="cmd-tag tag-service">Yetkilendirme</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Bir arkadaşının `id_rsa.pub` açık anahtarını `keys/chat-users.json` içine ekleyerek ona doğrudan şifresiz giriş hakkı verebilirsin.</p>
+          <div class="code-box">
+            <span class="code-text">nano /home/kayra/whononymous/keys/chat-users.json</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. GÜVENLİK & FAIL2BAN -->
+    <section id="security-firewall">
+      <div class="section-header">
+        <h2>🛡️ 6. Güvenlik, Ban Listesi &amp; Saldırı Önleme</h2>
+      </div>
+      <p class="section-desc">Sunucun Fail2ban ile korunmaktadır. Kötü niyetli IP'leri ve durumları buradan kontrol edebilirsin:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Fail2ban Hangi IP'leri Banlamış? (Saldırgan Listesi)</span>
+          <span class="cmd-tag tag-monitor">Güvenlik</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">SSH portuna izinsiz girmeye çalışıp engellenen IP'leri listeler.</p>
+          <div class="code-box">
+            <span class="code-text">sudo fail2ban-client status sshd</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Yanlışlıkla Banlanan Bir Arkadaşının Banını Kaldır (Unban)</span>
+          <span class="cmd-tag tag-essential">Unban</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Arkadaşın şifreyi üst üste yanlış girip banlandıysa banını tek tıkla açar:</p>
+          <div class="code-box">
+            <span class="code-text">sudo fail2ban-client set sshd unbanip IP_ADRESI</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ACİL DURUM REHBERİ -->
+    <section id="disaster-recovery">
+      <div class="section-header">
+        <h2>🚨 7. "Sunucu Çöktü / Yanıt Vermiyor, Ne Yapacağım?"</h2>
+      </div>
+      <p class="section-desc">Herhangi bir gün sitene veya sohbete ulaşılamadığında panik yapmadan sırasıyla şu 3 adımı uygula:</p>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Adım 1: Nginx ve Node Servislerini Tek Seferde Yeniden Başlat</span>
+          <span class="cmd-tag tag-danger">Acil</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Sorunların %95'i kilitlenen süreçlerden kaynaklanır. Bu tek satır tüm web ve sohbet servislerini baştan başlatır:</p>
+          <div class="code-box">
+            <span class="code-text">sudo systemctl restart nginx &amp;&amp; sudo systemctl restart kayra-portfolio &amp;&amp; pm2 restart all</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Adım 2: Disk Dolmuş mu Kontrol Et ve Temizle</span>
+          <span class="cmd-tag tag-danger">Acil</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Disk %100 dolarsa Linux kilitlenir. Eski gereksiz paketleri ve sistem loglarını temizler:</p>
+          <div class="code-box">
+            <span class="code-text">sudo apt-get autoremove -y &amp;&amp; sudo apt-get clean &amp;&amp; sudo journalctl --vacuum-time=3d</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-header">
+          <span class="cmd-name">Adım 3: Son Çare Sunucuyu Temizce Yeniden Başlat (Reboot)</span>
+          <span class="cmd-tag tag-danger">Son Çare</span>
+        </div>
+        <div class="cmd-body">
+          <p class="cmd-desc">Tüm donanım ve çekirdeği yeniden başlatır. 30-40 saniye sonra her şey otomatik ayağa kalkar.</p>
+          <div class="code-box">
+            <span class="code-text">sudo reboot</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Tek Tıkla Kopyalama Fonksiyonu
+    function copyCode(btn) {
+      const code = btn.previousElementSibling.innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = "✓ Kopyalandı";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.remove("copied");
+        }, 1800);
+      });
+    }
+
+    // Canlı Arama / Filtreleme
+    document.getElementById("cmdSearch").addEventListener("input", function(e) {
+      const query = e.target.value.toLowerCase();
+      const cards = document.querySelectorAll(".cmd-card");
+
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(query)) {
+          card.style.display = "block";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
